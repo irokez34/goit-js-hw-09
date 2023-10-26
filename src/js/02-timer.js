@@ -15,8 +15,14 @@ const refs =
   seconds : document.querySelector('[data-seconds]'),
   }
   const {timePicker, btn, timerDate, days, hours, minutes, seconds} = refs;
-  btn.disabled = true;
 
+  btn.disabled = true;
+  function updateTimerDisplay(timeData) {
+    days.textContent = addLeadingZero(timeData.days);
+    hours.textContent = addLeadingZero(timeData.hours);
+    minutes.textContent = addLeadingZero(timeData.minutes);
+    seconds.textContent = addLeadingZero(timeData.seconds);
+  }
   function convertMs(ms) {
     const second = 1000;
     const minute = second * 60;
@@ -35,39 +41,35 @@ const refs =
     time_24hr: true,
     defaultDate: new Date(),
     minuteIncrement: 1,
-    onClose(selectedDates) {
-    
-      console.log(selectedDates[0]);
-     const selectDate =  selectedDates[0];
-     if (selectDate.getTime() <= options.defaultDate.getTime()) Notiflix.Notify.warning('Please choose a date in the future'); 
-      
+    onClose() {
+     let timerInterval;
+     btn.addEventListener('click',handlerStart)
+     function handlerStart (evt) {
+   
+       let timer = new Date(timePicker.value) - Date.now();
+       timerInterval =  setInterval(() => {
+         if (timer > 0) {
+           timer -= 1000;
+           const timeData = convertMs(timer);
+           updateTimerDisplay(timeData);  
+         }
+         else clearInterval(timerInterval);
+        
+       }, 1000);
+     }
+     if (new Date(timePicker.value) <= new Date().getTime() )
+     {
+      Notiflix.Notify.warning('Please choose a date in the future');
+      btn.disabled = true;
+    } 
       else {
        btn.disabled = false;
-       let timerInterval;
-        btn.addEventListener('click',handlerStart)
-        function handlerStart (evt) {
-         
-          let timer = selectDate.getTime() - options.defaultDate.getTime();
-         
-          
-          timerInterval =  setInterval(() => {
-            if (timer > 0) {
-              timer -= 1000;
-              const timeData = convertMs(timer);
-              days.textContent = addLeadingZero(timeData.days);
-              hours.textContent = addLeadingZero(timeData.hours);
-              minutes.textContent = addLeadingZero(timeData.minutes);
-              seconds.textContent = addLeadingZero(timeData.seconds);
-
-            }
-            else clearInterval(timerInterval);
-           
-          }, 1000);
-        }
      } 
     },
   };
+  
  function  addLeadingZero (value) {
   return value.toString().padStart(2, '0');
  }
+  
   flatpickr(timePicker, options);
